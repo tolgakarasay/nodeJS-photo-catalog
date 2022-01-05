@@ -5,6 +5,12 @@ const app = express();
 // path modülünü import edelim. Path bir core modül olduğu için download gerekmeden çağırınca gelir.
 const path = require('path');
 
+// ejs modülünü import edelim
+const ejs = require('ejs');
+
+// TEMPLATE ENGINE
+app.set('view engine', 'ejs');
+
 const myLogger = (req, res, next) => {
   console.log('Middleware log 1');
   // next() yazalım ki bir sonraki middleware e ilerleyebilsin. Sayfa yüklenmesi yarıda kalmasın.
@@ -26,7 +32,16 @@ app.use(myLogger2);
 
 // get request de aslında bir middleware'dir.
 app.get('/', (req, res) => {
-  res.sendFile(path.resolve(__dirname, 'temp/index.html'));
+  //res.sendFile(path.resolve(__dirname, 'temp/index.html'));
+  res.render('index');
+});
+
+app.get('/about', (req, res) => {
+  res.render('about');
+});
+
+app.get('/add', (req, res) => {
+  res.render('add');
 });
 
 // Sunucuyu başlatalım
