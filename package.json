@@ -1,0 +1,27 @@
+{
+  "name": "photo_catalog",
+  "version": "1.0.0",
+  "description": "PCAT photo app",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tolgakarasay/nodeJS-photo-catalog.git"
+  },
+  "keywords": [
+    "photo",
+    "app",
+    "camera"
+  ],
+  "author": "Tolga Karasay",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tolgakarasay/nodeJS-photo-catalog/issues"
+  },
+  "homepage": "https://github.com/tolgakarasay/nodeJS-photo-catalog#readme",
+  "devDependencies": {
+    "prettier": "2.5.1"
+  }
+}
