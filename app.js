@@ -8,6 +8,15 @@ const path = require('path');
 // ejs modülünü import edelim
 const ejs = require('ejs');
 
+// Photo modülünü import edelim
+const Photo = require('./models/Photo');
+
+// mongoose modülünü import edelim
+const mongoose = require('mongoose');
+
+// connect DB
+mongoose.connect('mongodb://localhost/pcat-test-db');
+
 // TEMPLATE ENGINE
 app.set('view engine', 'ejs');
 
@@ -29,11 +38,16 @@ const myLogger2 = (req, res, next) => {
 app.use(express.static('public'));
 app.use(myLogger);
 app.use(myLogger2);
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // get request de aslında bir middleware'dir.
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  const photos = await Photo.find({});
   //res.sendFile(path.resolve(__dirname, 'temp/index.html'));
-  res.render('index');
+  res.render('index', {
+    photos,
+  });
 });
 
 app.get('/about', (req, res) => {
@@ -51,3 +65,10 @@ app.listen(port, () => {
 });
 
 // not: request ve response arasında bulunan herşey middleware'dir. Routing bile middleware'dir.
+
+// photo yükleme yönlendirmesi (routing)
+app.post('/photos', async (req, res) => {
+  await Photo.create(req.body);
+  console.log(req.body);
+  res.redirect('/');
+});
