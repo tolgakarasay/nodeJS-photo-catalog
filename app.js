@@ -20,6 +20,7 @@ mongoose.connect('mongodb://localhost/pcat-test-db');
 // TEMPLATE ENGINE
 app.set('view engine', 'ejs');
 
+/*
 const myLogger = (req, res, next) => {
   console.log('Middleware log 1');
   // next() yazalım ki bir sonraki middleware e ilerleyebilsin. Sayfa yüklenmesi yarıda kalmasın.
@@ -30,14 +31,17 @@ const myLogger2 = (req, res, next) => {
   console.log('Middleware log 2');
   next();
 };
+*/
 
 // MIDDLEWARE'ler
 
 // To serve static files such as images, CSS files, and JavaScript files,
 // use the express.static built-in middleware function in Express.
 app.use(express.static('public'));
+/*
 app.use(myLogger);
 app.use(myLogger2);
+*/
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -47,6 +51,18 @@ app.get('/', async (req, res) => {
   //res.sendFile(path.resolve(__dirname, 'temp/index.html'));
   res.render('index', {
     photos,
+  });
+});
+
+app.get('/photos/:id', async (req, res) => {
+  /*
+  console.log(req.params.id);
+  res.render('about');
+  */
+
+  const photo = await Photo.findById(req.params.id);
+  res.render('photo', {
+    photo,
   });
 });
 
