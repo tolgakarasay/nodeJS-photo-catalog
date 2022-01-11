@@ -1,53 +1,39 @@
-// Express sayesinde HTTP metodlarını kolaylıkla kullanabiliriz.
+//__________________________________________
+//__________________MODULES_________________
 const express = require('express');
-const app = express();
-
-// path modülünü import edelim. Path bir core modül olduğu için download gerekmeden çağırınca gelir.
-const path = require('path');
-
-// ejs modülünü import edelim
+const fileupload = require('express-fileupload');
+const mongoose = require('mongoose');
 const ejs = require('ejs');
-
-// Photo modülünü import edelim
+const path = require('path');
+const fs = require('fs');
 const Photo = require('./models/Photo');
 
-// mongoose modülünü import edelim
-const mongoose = require('mongoose');
+const app = express();
 
-// connect DB
+//__________________________________________
+//______________DB CONNECTION_______________
 mongoose.connect('mongodb://localhost/pcat-test-db');
 
-// TEMPLATE ENGINE
+//__________________________________________
+//____________TEMPLATE ENGINE_______________
 app.set('view engine', 'ejs');
 
-/*
-const myLogger = (req, res, next) => {
-  console.log('Middleware log 1');
-  // next() yazalım ki bir sonraki middleware e ilerleyebilsin. Sayfa yüklenmesi yarıda kalmasın.
-  next();
-};
-
-const myLogger2 = (req, res, next) => {
-  console.log('Middleware log 2');
-  next();
-};
-*/
-
-// MIDDLEWARE'ler
-
+//__________________________________________
+//_______________MIDDLEWARES________________
 // To serve static files such as images, CSS files, and JavaScript files,
 // use the express.static built-in middleware function in Express.
 app.use(express.static('public'));
-/*
-app.use(myLogger);
-app.use(myLogger2);
-*/
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(fileupload());
 
+//__________________________________________
+//__________________ROUTES__________________
 // get request de aslında bir middleware'dir.
+// not: request ve response arasında bulunan herşey middleware'dir. Routing bile middleware'dir.
+
 app.get('/', async (req, res) => {
-  const photos = await Photo.find({});
+  const photos = await Photo.find({}).sort('-dateCreated');
   //res.sendFile(path.resolve(__dirname, 'temp/index.html'));
   res.render('index', {
     photos,
@@ -55,15 +41,30 @@ app.get('/', async (req, res) => {
 });
 
 app.get('/photos/:id', async (req, res) => {
-  /*
-  console.log(req.params.id);
-  res.render('about');
-  */
-
   const photo = await Photo.findById(req.params.id);
   res.render('photo', {
     photo,
   });
+});
+
+// photo yükleme yönlendirmesi (routing)
+app.post('/photos', async (req, res) => {
+  const uploadDir = 'public/uploads';
+
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+  }
+
+  let uploadedImage = req.files.image;
+  let uploadPath = __dirname + '/public/uploads/' + uploadedImage.name;
+
+  uploadedImage.mv(uploadPath, async () => {
+    await Photo.create({
+      ...req.body,
+      image: '/uploads/' + uploadedImage.name,
+    });
+  });
+  res.redirect('/');
 });
 
 app.get('/about', (req, res) => {
@@ -74,17 +75,9 @@ app.get('/add', (req, res) => {
   res.render('add');
 });
 
-// Sunucuyu başlatalım
+//__________________________________________
+//____________START THE SERVER______________
 const port = 3000;
 app.listen(port, () => {
   console.log(`Sunucu ${port} portunda başlatıldı.`);
-});
-
-// not: request ve response arasında bulunan herşey middleware'dir. Routing bile middleware'dir.
-
-// photo yükleme yönlendirmesi (routing)
-app.post('/photos', async (req, res) => {
-  await Photo.create(req.body);
-  console.log(req.body);
-  res.redirect('/');
 });
