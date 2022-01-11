@@ -4,9 +4,11 @@ const express = require('express');
 const fileupload = require('express-fileupload');
 const mongoose = require('mongoose');
 const ejs = require('ejs');
+const methodOverride = require('method-override');
 const path = require('path');
 const fs = require('fs');
 const Photo = require('./models/Photo');
+const { redirect } = require('express/lib/response');
 
 const app = express();
 
@@ -26,6 +28,11 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(fileupload());
+app.use(
+  methodOverride('_method', {
+    methods: ['POST', 'GET'],
+  })
+);
 
 //__________________________________________
 //__________________ROUTES__________________
@@ -64,7 +71,16 @@ app.post('/photos', async (req, res) => {
       image: '/uploads/' + uploadedImage.name,
     });
   });
+
   res.redirect('/');
+});
+
+app.get('/photos/edit/:id', async (req, res) => {
+  const photo = await Photo.findById(req.params.id);
+
+  res.render('edit', {
+    photo,
+  });
 });
 
 app.get('/about', (req, res) => {
@@ -73,6 +89,22 @@ app.get('/about', (req, res) => {
 
 app.get('/add', (req, res) => {
   res.render('add');
+});
+
+app.put('/photos/:id', async (req, res) => {
+  const photo = await Photo.findById(req.params.id);
+  photo.title = req.body.title;
+  photo.description = req.body.description;
+  photo.save();
+
+  res.redirect('/photos/' + req.params.id);
+});
+
+app.delete('/photos/:id', async (req, res) => {
+  const photo = await Photo.findById(req.params.id);
+  fs.unlinkSync(__dirname + '/public' + photo.image);
+  await Photo.findByIdAndRemove(req.params.id);
+  res.redirect('/');
 });
 
 //__________________________________________
